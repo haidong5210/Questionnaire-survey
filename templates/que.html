@@ -1,0 +1,55 @@
+{% extends "index.html" %}
+{% block content %}
+     <div style="margin-left: 700px;margin-top: 20px;margin-bottom: 10px"><button class="btn btn-success" id="add">添加</button>
+    <button class="btn btn-info ">完成</button></div>
+        {% for dict in form %}
+            <div class="jumbotron">
+                <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span>
+                <ul id="{{ dict.id }}">
+                    <h4>问题：</h4><li>{{ dict.form.title }}</li>
+                    <h4>类型：</h4><li>{{ dict.form.type }} <button class="{{ dict.hide }} add">添加选项</button></li>
+                    <ul>
+                        {% for op in dict.option %}
+                            <li class="{{ op.option_id }}">{{ op.option }} <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></li>
+                        {% endfor %}
+                    </ul>
+                </ul>
+            </div>
+        {% endfor %}
+{% endblock content%}
+
+{% block js %}
+    <script>
+        //添加问题
+        $(function () {
+            $("#add").click(function () {
+                var s='<div class="jumbotron"> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span> <ul> <h4>问题：</h4><li><textarea name="title" cols="60" rows="3" maxlength="32" required="" id="id_title"></textarea></li> <h4>类型：</h4><li><select name="type" required="" id="id_type"> <option value="">---------</option> <option value="1">单选</option> <option value="2">打分(1~10分)</option> <option value="3">建议</option> </select> </li><ul></ul></ul> </div>'
+             $(".content").append(s)
+            });
+
+            //select变换
+            $(".content").on("change","select",function () {
+                if ($(this).val()==="1"){
+                    var s='<button class="add">添加选项</button>'
+                    $(this).parent().append(s)
+                }else{
+                    $(this).parent().next().empty();
+                    $(this).next().remove()
+                }
+            });
+
+            //增加单选项
+            $(".content").on("click",".add",function () {
+                var s ='<li><label for="id_name">选项名称:</label><input type="text" name="name" maxlength="32" required="" id="id_name"> <label for="id_score">选项对应的分值:</label><input type="number" name="score" required="" id="id_score"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span</li>';
+                $(this).parent().next().append(s)
+            });
+
+            
+
+        });
+
+
+
+    </script>
+
+{% endblock js%}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <script src="/static/jquery3.2.1.js"></script>
+    <script src="/static/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <style>
+        ul{
+            list-style: none;
+            padding: 10px;
+        }
+        li{
+            margin-top: 5px;
+        }
+        .hide{
+            display: none;
+        }
+        .add{
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div style="width: 100%;height: 50px;background-color: #5bc0de">
+            <a href="/"><span style="color: white;font-size: 20px;display: inline-block;margin-top: 10px">平台首页</span></a>
+            &nbsp; &nbsp; &nbsp;
+            <span style="color: white;font-size: 20px;display: inline-block;margin-top: 10px">资产首页</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div style="border: 1px solid royalblue;height: 500px"></div>
+        </div>
+        <div class="col-md-9 content">
+        {% block content %}
+            <a href="/index/add/"><button class="btn btn-success" style="margin-top: 10px">添加</button></a>
+            <div class="table-responsive" style="margin-top: 30px">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th class="col-md-1"><input type="checkbox"></th>
+                        <th class="col-md-2">调查问卷名称</th>
+                        <th class="col-md-2">问卷调查班级</th>
+                        <th class="col-md-1">参与人数</th>
+                        <th class="col-md-1">问卷选项</th>
+                        <th class="col-md-2">调查地址</th>
+                        <th class="col-md-1">查看评分</th>
+                        <th class="col-md-1">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for surveyinfo in surveyinfo_list %}
+                        <tr>
+                            <td class="col-md-1"><input type="checkbox"></td>
+                            <td class="col-md-2"><a href="">{{ surveyinfo.title }}</a></td>
+                            <td class="col-md-2">{{ surveyinfo.cls.title }}</td>
+                            <td class="col-md-1">0/{{ surveyinfo.cls.num }}</td>
+                            <td class="col-md-1"><a href="/questions/{{ surveyinfo.id }}">编辑问卷</a></td>
+                            <td class="col-md-2"><a href="">/questions/{{ surveyinfo.id }}/</a></td>
+                            <td class="col-md-1"><a href="">查看评分</a></td>
+                            <td class="col-md-1"><a surveyinfo_id = "{{ surveyinfo.id }}" class="del">删除</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endblock %}
+
+        </div>
+    </div>
+</div>
+
+{% block js %}
+    <script>
+        $(function () {
+            $(".del").click(function () {
+                $(this).addClass("is_me")
+                var surveyinfoId = $(this).attr("surveyinfo_id");
+                $.ajax({
+                    url:"/dell/",
+                    type:"GET",
+                    data:{
+                        surveyinfoId:surveyinfoId
+                    },
+                    success:function (data) {
+                        if (data){
+                            $(".is_me").parent().parent().remove()
+                        }
+                    }
+                })
+            })
+        })
+    </script>
+{% endblock %}
+</body>
+</html>

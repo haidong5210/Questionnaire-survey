@@ -1,0 +1,77 @@
+{% extends "index.html" %}
+{% block content %}
+    <div style="margin-left: 700px;margin-top: 20px;margin-bottom: 10px"><button class="btn btn-success" id="add">添加</button>
+    <button class="btn btn-info ">完成</button></div>
+    {% if question_list %}
+        {% for question in question_list %}
+            <div class="jumbotron">
+             <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span>
+                <h4>问题：</h4>
+                <p><textarea name="" id="" cols="50">{{ question.name }}</textarea></p>
+                类型：<select name="" id="" style="height: 30px">
+                            {% for type in type_list %}
+                                {% if question.type == type.0 %}
+                                    <option id={{ type.0 }} value="{{ type.0 }}" selected>{{ type.1 }}</option>
+                                    {% else %}
+                                    <option id={{ type.0 }} value="{{ type.0 }}">{{ type.1 }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                {% if question.type == 1 %}
+                    <span>
+                    <button class="btn btn-default option" style="margin-left: 80px">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>添加选项
+                    </button>
+                    {% for option in option_list %}
+                        <li style="margin-top: 10px"><span>内容：</span><input type="text" value="{{ option.name }}"><span>分值：</span><input type="text" value="{{ option.score }}"> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></li>
+                    {% endfor %}
+                    </span>
+                {% else %}
+                    <span></span>
+                {% endif %}
+    </div>
+
+        {% endfor %}
+
+    {% else %}
+        <div class="jumbotron">
+        <h4>问题：</h4><p><textarea name="" id="" cols="50"></textarea></p>
+        类型：<select name="" id="" style="height: 30px">
+                            <option id="1" value="1">单选</option>
+                            <option id="2" value="2">打分(1~10分)</option>
+                            <option id="3" value="3">建议</option>
+                </select>
+            <span>
+            <button class="btn btn-default option" style="margin-left: 80px">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>添加选项</button></span>
+    </div>
+    {% endif %}
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+    $(function () {
+        $("#add").click(function () {
+            var s = '<div class="jumbotron"> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span><h4>问题：</h4><p><textarea name="" id="" cols="50"></textarea></p>类型：<select name="" id="" style="height: 30px"> <option id="1" value="1">单选</option> <option id="2" value="3">打分(1~10分)</option> <option id="3" value="3">建议</option></select> <span> <button class="btn btn-default option" style="margin-left: 80px"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>添加选项</button></span></div>'
+            $(".content").append(s)
+        })
+    });
+    $(".content").on("change","select",function () {
+        if ($(this).val()==="1"){
+            var s='<button class="btn btn-default option" style="margin-left: 80px"><span class="glyphicon glyphicon-plus " aria-hidden="true"></span>添加选项</button>'
+            $(this).next().append(s)
+        }else{
+            $(this).next("span").empty()
+        }
+    })
+    $(".content").on("click",".option",function () {
+        var s ='<li style="margin-top: 10px"><span>内容：</span><input type="text"><span>分值：</span><input type="text"> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></li>'
+        $(this).parent().append(s)
+    })
+
+
+    </script>
+{% endblock %}
+

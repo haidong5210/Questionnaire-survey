@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <form action="/index/add/" method="post" novalidate>
+    {% csrf_token %}
+        <p><h4>问卷名称：</h4><input type="text" name="surveyInfo"></p>
+        <p><h4>班级：</h4><select name="cla">
+                        {% for cls in cls_list %}
+                            <option value="{{ cls.id }}">{{ cls.title }}</option>
+                        {% endfor %}
+                            </select></p>
+        <p><h4>创作人：</h4><select name="user">
+                            {% for user in user_list %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                            </select></p>
+
+        <input type="submit" class="btn btn-success" value="完成">
+    </form>
+{% endblock %}
