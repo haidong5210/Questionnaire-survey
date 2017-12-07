@@ -1,16 +1,16 @@
 {% extends "index.html" %}
 {% block content %}
      <div style="margin-left: 700px;margin-top: 20px;margin-bottom: 10px"><button class="btn btn-success" id="add">添加</button>
-    <button class="btn btn-info ">完成</button></div>
+    <button class="btn btn-info submit">完成</button></div>
         {% for dict in form %}
-            <div class="jumbotron">
-                <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span>
-                <ul id="{{ dict.id }}">
+            <div class="jumbotron" id="{{ dict.id }}">
+                <span class="glyphicon glyphicon-remove pull-right cha" aria-hidden="true"></span>
+                <ul >
                     <h4>问题：</h4><li>{{ dict.form.title }}</li>
                     <h4>类型：</h4><li>{{ dict.form.type }} <button class="{{ dict.hide }} add">添加选项</button></li>
                     <ul>
                         {% for op in dict.option %}
-                            <li class="{{ op.option_id }}">{{ op.option }} <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></li>
+                            <li id="{{ op.option_id }}">{{ op.option }}<span class="glyphicon glyphicon-remove cha" aria-hidden="true"></span></li>
                         {% endfor %}
                     </ul>
                 </ul>
@@ -20,17 +20,18 @@
 
 {% block js %}
     <script>
-        //添加问题
+
         $(function () {
+            //添加问题
             $("#add").click(function () {
-                var s='<div class="jumbotron"> <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span> <ul> <h4>问题：</h4><li><textarea name="title" cols="60" rows="3" maxlength="32" required="" id="id_title"></textarea></li> <h4>类型：</h4><li><select name="type" required="" id="id_type"> <option value="">---------</option> <option value="1">单选</option> <option value="2">打分(1~10分)</option> <option value="3">建议</option> </select> </li><ul></ul></ul> </div>'
+                var s='<div class="jumbotron"> <span class="glyphicon glyphicon-remove pull-right cha" aria-hidden="true"></span> <ul> <h4>问题：</h4><li><textarea name="title" cols="60" rows="3" maxlength="32" required="" id="id_title"></textarea></li> <h4>类型：</h4><li><select name="type" required="" id="id_type"> <option value="">---------</option> <option value="1">单选</option> <option value="2">打分(1~10分)</option> <option value="3">建议</option> </select> </li><ul></ul></ul> </div>'
              $(".content").append(s)
             });
 
             //select变换
             $(".content").on("change","select",function () {
                 if ($(this).val()==="1"){
-                    var s='<button class="add">添加选项</button>'
+                    var s='<button class="add">添加选项</button>';
                     $(this).parent().append(s)
                 }else{
                     $(this).parent().next().empty();
@@ -40,16 +41,61 @@
 
             //增加单选项
             $(".content").on("click",".add",function () {
-                var s ='<li><label for="id_name">选项名称:</label><input type="text" name="name" maxlength="32" required="" id="id_name"> <label for="id_score">选项对应的分值:</label><input type="number" name="score" required="" id="id_score"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span</li>';
+                var s ='<li><label for="id_name">选项名称:</label><input type="text" name="name" maxlength="32" required="" id="id_name"> <label for="id_score">选项对应的分值:</label><input type="number" name="score" required="" id="id_score"><span class="glyphicon glyphicon-remove cha" aria-hidden="true"></span</li>';
                 $(this).parent().next().append(s)
             });
 
-            
+            //删除问题
+            $(".content").on("click",".cha",function () {
+                $(this).parent().remove()
+            });
+
+            //提交数据
+            $(".submit").click(function () {
+                //处理数据
+                var data_list = [];
+                $(".jumbotron").each(function (i,v) {
+                    var dict={};
+                    var postion_id = $(v).attr("id");
+                    if (postion_id){
+                         dict['id'] = postion_id;
+                    }
+                    var postion_title = $(v).children("ul").children("li").children("textarea").val();
+                    dict['postion_title'] = postion_title;
+                    var type = $(v).children("ul").children("li").children("select").val();
+                    if (type==="1"){
+                        var op_l=[];
+                        $(v).children("ul").children("ul").children("li").each(function (j,k) {
+                            op_dict={};
+                            var op_id = $(k).attr("id");
+                            op_dict['op_id']=op_id;
+                            var op_title = $(k).children(":text").val();
+                            op_dict['op_title']=op_title
+                            var op_score = $(k).children("#id_score").val();
+                            op_dict['op_score']=op_score;
+                            op_l.push(op_dict)
+                        })
+                    }
+                    dict['type']= type;
+                    dict['option']=op_l;
+                    data_list.push(dict)
+                });
+               $.ajax({
+                   url:"/data/{{ nid }}/",
+                   type:"POST",
+                   headers:{"X-CSRFToken":$.cookie('csrftoken')},
+                   data:{
+                       dt:JSON.stringify(data_list)
+                   },
+                   success:function (data) {
+                     if (JSON.parse(data)){
+                         location.href='/'
+                     }
+                   }
+               })
+            })
 
         });
-
-
-
     </script>
 
 {% endblock js%}

@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^index/', views.index),
     url(r'^dell/', views.dell),
     url(r'^$', views.index),
+    url(r'^data/(\d+)/', views.data),
     url(r'^questions/(\d+)/', views.questions),
 
 ]
