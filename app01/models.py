@@ -81,6 +81,7 @@ class Answer(models.Model):
     """
     student = models.ForeignKey(to=Student,verbose_name="某个学生",blank=True)
     question = models.ForeignKey(to=Question,verbose_name="某个问题",blank=True)
+    option = models.ForeignKey(to="Option", null=True, blank=True)
     score = models.CharField(max_length=32,null=True,verbose_name="分数")
     content = models.TextField(null=True,verbose_name="内容")
     create_time = models.DateTimeField(auto_now_add=True,verbose_name="创建时间")

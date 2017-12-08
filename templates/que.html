@@ -1,7 +1,8 @@
 {% extends "index.html" %}
 {% block content %}
      <div style="margin-left: 700px;margin-top: 20px;margin-bottom: 10px"><button class="btn btn-success" id="add">添加</button>
-    <button class="btn btn-info submit">完成</button></div>
+        <button class="btn btn-info submit">完成</button>
+     </div>
         {% for dict in form %}
             <div class="jumbotron" id="{{ dict.id }}">
                 <span class="glyphicon glyphicon-remove pull-right cha" aria-hidden="true"></span>
@@ -20,7 +21,6 @@
 
 {% block js %}
     <script>
-
         $(function () {
             //添加问题
             $("#add").click(function () {

@@ -3,6 +3,7 @@ from django.shortcuts import render,redirect,HttpResponse
 from app01 import models
 from django.forms import fields,Form,ModelForm
 from django.forms import widgets as wd
+from django.core.exceptions import ValidationError
 # Create your views here.
 
 
@@ -98,8 +99,8 @@ def data(request,nid):
                     models.Question.objects.filter(id=data_dict["id"]).update(title=data_dict["postion_title"],
                                                           type=data_dict["type"],
                                                           surveyInfo_id=nid)
-                    models.Option.objects.filter(qs=qs_obj).delete()
-                else:
+                    models.Option.objects.filter(qs=qs_obj).delete()   #把之前type是1的项的option删除
+                else:   #type为单选时的
                     models.Question.objects.filter(id=data_dict["id"]).update(title=data_dict["postion_title"],
                                                                               type=data_dict["type"],
                                                                               surveyInfo_id=nid)
@@ -107,13 +108,13 @@ def data(request,nid):
                         models.Option.objects.create(name=op_dict['op_title'],
                                                      score=op_dict['op_score'],
                                                      qs=qs_obj)
-            else:
+            else:       #数据库中存在这个项  只对type是单选时做判断
                 op_id_ser = models.Option.objects.filter(qs=qs_obj).values_list("id")
                 op_l=[j[0] for j in op_id_ser]
                 if data_dict['type'] == '1':
                     for opt_dict in data_dict['option']:
                         if 'op_id' in opt_dict:
-                            op_l.remove(int(opt_dict['op_id']))
+                            op_l.remove(int(opt_dict['op_id']))           #前端中移除的option数据库也移除
                             option_set = models.Option.objects.filter(id=opt_dict["op_id"],name=opt_dict['op_title'],
                                                          score=opt_dict['op_score'],qs=qs_obj)
                             if not option_set:
@@ -137,3 +138,71 @@ def data(request,nid):
         for k in l:
             models.Question.objects.filter(id=k).delete()
     return HttpResponse(json.dumps(True))
+
+
+def login(request):
+    if request.is_ajax():
+        user = request.POST.get("user")
+        pwd = request.POST.get("password")
+        stu_obj = models.Student.objects.filter(name=user,password=pwd).first()
+        login = {"log":False}
+        if stu_obj:
+            login['log'] = True
+            request.session['user']={"password":stu_obj.password,"name":stu_obj.name,"id":stu_obj.id}
+        return HttpResponse(json.dumps(login))
+    else:
+        return render(request,"login.html")
+
+
+def func(val):
+    if len(val) < 15:
+        raise ValidationError("你太短了！！")
+
+
+def answer(request,sur_id,cls_id):
+    if not request.session.get("user"):
+        return redirect("/login/")
+    else:
+        #不是此次答题班级的学生
+        stud_list = models.Student.objects.filter(cls_id=cls_id,name=request.session["user"]["name"],password=request.session["user"]["password"])
+        if not stud_list:
+            return HttpResponse("你不是此次答题班级的学生，是不是想串班！！！")
+        #答过题的学生，不能再次答！！
+        answer_list = models.Answer.objects.filter(student_id=request.session["user"]["id"],question__surveyInfo_id=sur_id)
+        if answer_list:
+            return HttpResponse("你已经答过此次问卷，谢谢您的参与！！")
+        #form组件#另一种生成form组件的形式，对象也是用type生成的
+        question_list = models.Question.objects.filter(surveyInfo_id=sur_id)
+        questions_dict = {}
+        for question_obj in question_list:
+            if question_obj.type == 1:
+                questions_dict["option_id_%s"%question_obj.id]=fields.ChoiceField(label=question_obj.title,
+                                                                                  choices=models.Option.objects.filter(qs_id=question_obj.id).values_list("id","score"),
+                                                                        widget=wd.RadioSelect,
+                                                                        error_messages={"required":"内容不能为空！"})
+            elif question_obj.type == 2:
+                questions_dict["score_%s"%question_obj.id]=fields.ChoiceField(label=question_obj.title,
+                                                                              choices=[(i,i) for i in range(1,11)],
+                                                                      widget=wd.RadioSelect,
+                                                                      error_messages={"required": "内容不能为空！"})
+            else:
+                questions_dict["content_%s"%question_obj.id]=fields.CharField(label=question_obj.title,
+                                                                              widget=wd.Textarea,
+                                                                      error_messages={"required": "内容不能为空！"},
+                                                                              validators=[func,])
+        TestQuestion = type("Test", (Form,),questions_dict)
+        if request.method == "GET":
+            form = TestQuestion()
+            return render(request,"answer.html",{"form":form})
+        else:
+            form = TestQuestion(request.POST)
+            if not form.is_valid():
+                return render(request, "answer.html", {"form": form})
+            else:
+                answer_l = []
+                for key,v in form.cleaned_data.items():  #{'content_1': 'asdasdasdasdasdasdasdasdasd', 'score_2': '3', 'option_id_3': '8'}
+                    field,ques_id = key.rsplit("_",1)
+                    answer_dict = {'student_id':request.session["user"]["id"],"question_id":ques_id,field:v}
+                    answer_l.append(models.Answer(**answer_dict))
+                models.Answer.objects.bulk_create(answer_l)
+                return HttpResponse("感谢您的参与！！我们献上诚挚的感谢")

@@ -18,11 +18,14 @@ from django.contrib import admin
 from app01 import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^index/add/', views.add),
-    url(r'^index/', views.index),
-    url(r'^dell/', views.dell),
+    url(r'^index/add/$', views.add),
+    url(r'^index/$', views.index),
+    url(r'^login/$', views.login),
+    url(r'^dell/$', views.dell),
     url(r'^$', views.index),
-    url(r'^data/(\d+)/', views.data),
-    url(r'^questions/(\d+)/', views.questions),
+    url(r'^data/(\d+)/$', views.data),
+    url(r'^questions/(\d+)/(\d+)/$', views.answer),
+    url(r'^questions/(\d+)/$', views.questions),
+
 
 ]
